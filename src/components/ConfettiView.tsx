@@ -2,7 +2,7 @@ import React, { useState, useImperativeHandle, forwardRef, useRef } from 'react'
 import { View, StyleSheet, Animated, Dimensions } from 'react-native';
 
 export interface ConfettiRef {
-  trigger: (x: number, y: number) => void;
+  trigger: (x: number, y: number, customEmojis?: string[]) => void;
 }
 
 interface Particle {
@@ -20,14 +20,15 @@ export const ConfettiView = forwardRef<ConfettiRef, {}>((_, ref) => {
   const [particles, setParticles] = useState<Particle[]>([]);
 
   useImperativeHandle(ref, () => ({
-    trigger(x: number, y: number) {
+    trigger(x: number, y: number, customEmojis?: string[]) {
+      const activeEmojis = customEmojis || EMOJIS;
       const newParticles: Particle[] = Array.from({ length: 12 }).map((_, i) => {
         const id = `${Date.now()}_${i}`;
         const pX = new Animated.Value(x);
         const pY = new Animated.Value(y);
         const opacity = new Animated.Value(1);
         const scale = new Animated.Value(0.4 + Math.random() * 0.6);
-        const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+        const emoji = activeEmojis[Math.floor(Math.random() * activeEmojis.length)];
 
         const angle = Math.random() * Math.PI * 2;
         const speed = 2 + Math.random() * 4;

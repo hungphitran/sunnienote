@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { StyleSheet, Text, View, Image, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDb, Event, getLocalDateString } from '../context/AppDbContext';
+import { ConfettiView, ConfettiRef } from '../components/ConfettiView';
 
 export const CalendarScreen: React.FC = () => {
   const { db, addEvent, toggleAlarm, deleteEvent } = useAppDb();
+  const confettiRef = useRef<ConfettiRef>(null);
 
   // Selected calendar day
   const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0); // 0 = today, -1 = yesterday, etc.
@@ -54,7 +56,7 @@ export const CalendarScreen: React.FC = () => {
   // Filter events for the selected date
   const filteredEvents = db.events.filter(e => e.date === activeDay.dateString);
 
-  const handleScheduleEvent = () => {
+  const handleScheduleEvent = (e: any) => {
     if (!eventTitle.trim()) {
       Alert.alert('Lỗi', 'Vui lòng nhập tiêu đề sự kiện.');
       return;
@@ -95,6 +97,10 @@ export const CalendarScreen: React.FC = () => {
 
     setEventTitle('');
     setEventLocation('');
+    
+    const { pageX, pageY } = e?.nativeEvent || {};
+    confettiRef.current?.trigger(pageX || 200, pageY || 350, ['📅', '⏰', '🎉', '✨', '🎈']);
+    
     Alert.alert('Thành công', 'Đã lên lịch hẹn và cài đặt nhắc nhở thiết bị! ⏰');
   };
 
@@ -222,7 +228,7 @@ export const CalendarScreen: React.FC = () => {
             </View>
           </View>
 
-          <BouncyPressable onPress={handleScheduleEvent} style={styles.scheduleButton}>
+          <BouncyPressable onPress={(e) => handleScheduleEvent(e)} style={styles.scheduleButton}>
             <Text style={styles.scheduleButtonText}>Cài nhắc lịch hẹn</Text>
           </BouncyPressable>
         </View>
@@ -292,6 +298,7 @@ export const CalendarScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+      <ConfettiView ref={confettiRef} />
     </View>
   );
 };

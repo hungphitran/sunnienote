@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
 import { WaveProgress } from '../components/WaveProgress';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDb, Event, getTodayDateString } from '../context/AppDbContext';
+import { ConfettiView, ConfettiRef } from '../components/ConfettiView';
 
 interface DashboardScreenProps {
   onNavigateToTab: (tabIndex: number) => void;
@@ -12,6 +13,7 @@ interface DashboardScreenProps {
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTab }) => {
   const { db, addWater, logMood } = useAppDb();
+  const confettiRef = useRef<ConfettiRef>(null);
 
   // Get current hour to personalize greeting
   const getGreeting = () => {
@@ -136,13 +138,19 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
           <WaveProgress progress={waterProgress} height={20} />
 
           <View style={styles.waterActions}>
-            <BouncyPressable onPress={() => addWater(250)} style={styles.addWaterButton}>
+            <BouncyPressable onPress={(e) => {
+              addWater(250);
+              confettiRef.current?.trigger(e.nativeEvent.pageX || 200, e.nativeEvent.pageY || 300, ['💧', '💦', '🥤', '🐳', '✨']);
+            }} style={styles.addWaterButton}>
               <Ionicons name="add" size={16} color={COLORS.onSecondaryContainer} />
               <Text style={styles.addWaterText}>Thêm 250ml</Text>
             </BouncyPressable>
             
             {todayWater > 0 && (
-              <BouncyPressable onPress={() => addWater(-250)} style={styles.subtractWaterButton}>
+              <BouncyPressable onPress={(e) => {
+                addWater(-250);
+                confettiRef.current?.trigger(e.nativeEvent.pageX || 100, e.nativeEvent.pageY || 300, ['💨', '😅', '💧']);
+              }} style={styles.subtractWaterButton}>
                 <Ionicons name="remove" size={16} color={COLORS.outline} />
               </BouncyPressable>
             )}
@@ -219,7 +227,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
               return (
                 <BouncyPressable
                   key={opt.emoji}
-                  onPress={() => logMood(opt.emoji)}
+                  onPress={(e) => {
+                    logMood(opt.emoji);
+                    confettiRef.current?.trigger(e.nativeEvent.pageX || 150, e.nativeEvent.pageY || 500, [opt.emoji, '✨', '💖', '🌸']);
+                  }}
                   style={[
                     styles.moodButton,
                     isActive && styles.activeMoodButton,
@@ -240,6 +251,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
           </View>
         </View>
       </ScrollView>
+      <ConfettiView ref={confettiRef} />
     </View>
   );
 };

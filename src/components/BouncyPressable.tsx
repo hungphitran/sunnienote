@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Pressable, Animated, PressableProps, StyleProp, ViewStyle, StyleSheet } from 'react-native';
+import { Pressable, Animated, PressableProps, StyleProp, ViewStyle, StyleSheet, Platform } from 'react-native';
 
 interface BouncyPressableProps extends PressableProps {
   children: React.ReactNode;
@@ -82,6 +82,12 @@ export const BouncyPressable: React.FC<BouncyPressableProps> = ({
     left,
     right,
     zIndex,
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+      } as any,
+      default: {},
+    }),
   };
 
   return (
@@ -91,7 +97,7 @@ export const BouncyPressable: React.FC<BouncyPressableProps> = ({
       onPressOut={handlePressOut}
       style={pressableStyle}
     >
-      <Animated.View style={[{ transform: [{ scale }], width: '100%' }, visualStyle]}>
+      <Animated.View style={[{ transform: [{ scale }], width: '100%', height: height ? '100%' : undefined }, visualStyle]}>
         {children}
       </Animated.View>
     </Pressable>
