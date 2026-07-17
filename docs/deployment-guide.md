@@ -112,3 +112,39 @@ npx expo prebuild
 * **Phát triển trực tiếp qua ứng dụng Expo Go (Dành cho bản không có thư viện native tùy biến):**
   * Tải app **Expo Go** trên App Store hoặc Google Play.
   * Quét mã QR hiển thị từ lệnh Metro Bundler để mở app.
+
+---
+
+## 5. Hướng dẫn Deploy lên Vercel (Web)
+
+Chúng tôi đã cấu hình sẵn file [vercel.json](file:///c:/Users/hung/Documents/GitHub/sunnienote/vercel.json) và script `build` trong [package.json](file:///c:/Users/hung/Documents/GitHub/sunnienote/package.json). Bạn có thể deploy ứng dụng lên Vercel theo hai phương thức sau:
+
+### Cách 1: Deploy tự động qua GitHub (Khuyên dùng)
+1. Đẩy mã nguồn dự án lên một kho lưu trữ **GitHub** (hoặc GitLab/Bitbucket).
+2. Truy cập vào trang quản lý [Vercel Dashboard](https://vercel.com/dashboard).
+3. Nhấp vào **Add New** -> **Project**, sau đó chọn kho lưu trữ chứa dự án của bạn.
+4. Tại phần cấu hình, Vercel sẽ tự nhận diện dựa trên cấu hình [vercel.json](file:///c:/Users/hung/Documents/GitHub/sunnienote/vercel.json):
+   * **Framework Preset**: Chọn `Other`.
+   * **Build Command**: `npm run build` (hoặc `npx expo export --platform web`).
+   * **Output Directory**: `dist`.
+5. Nhấp vào **Deploy**. Vercel sẽ tự động build và cung cấp domain chạy thử sau vài phút. Kể từ lúc này, mỗi khi bạn đẩy mã nguồn mới lên nhánh chính (main/master), Vercel sẽ tự động build lại.
+
+### Cách 2: Deploy thủ công bằng Vercel CLI
+Nếu bạn muốn deploy trực tiếp từ máy tính cục bộ của mình:
+1. Cài đặt **Vercel CLI** toàn cục nếu chưa có:
+   ```bash
+   npm i -g vercel
+   ```
+2. Đăng nhập vào tài khoản Vercel:
+   ```bash
+   vercel login
+   ```
+3. Chạy lệnh sau tại thư mục gốc của dự án để tạo bản Preview:
+   ```bash
+   vercel
+   ```
+   *(Nhập các thiết lập mặc định khi CLI yêu cầu)*.
+4. Chạy lệnh sau để deploy lên môi trường Production:
+   ```bash
+   vercel --prod
+   ```
