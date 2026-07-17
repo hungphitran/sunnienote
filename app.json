@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "sunnie_temp",
-    "slug": "sunnie_temp",
+    "name": "sunnienote",
+    "slug": "sunnienote",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourname.sunnietemp",
+      "bundleIdentifier": "com.yourname.sunnienote",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
