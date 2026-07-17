@@ -6,10 +6,17 @@ import { BouncyPressable } from '../components/BouncyPressable';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDb, Event, getLocalDateString } from '../context/AppDbContext';
 import { ConfettiView, ConfettiRef } from '../components/ConfettiView';
+import { CheerToast } from '../components/CheerToast';
 
 export const CalendarScreen: React.FC = () => {
   const { db, addEvent, toggleAlarm, deleteEvent } = useAppDb();
   const confettiRef = useRef<ConfettiRef>(null);
+
+  // Toast States
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const [toastSub, setToastSub] = useState('');
+  const [toastBadge, setToastBadge] = useState('🌟');
 
   // Selected calendar day
   const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0); // 0 = today, -1 = yesterday, etc.
@@ -58,7 +65,10 @@ export const CalendarScreen: React.FC = () => {
 
   const handleScheduleEvent = async (e: any) => {
     if (!eventTitle.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập tiêu đề sự kiện.');
+      setToastMsg('Thiếu thông tin mất rồi! ✍️');
+      setToastSub('Vui lòng điền tiêu đề sự kiện nhé. 💕');
+      setToastBadge('✍️');
+      setToastVisible(true);
       return;
     }
 
@@ -76,22 +86,27 @@ export const CalendarScreen: React.FC = () => {
         }
         
         if (finalStatus !== 'granted') {
-          Alert.alert(
-            'Yêu cầu quyền thông báo',
-            'Bạn cần cho phép gửi thông báo để có thể đặt lịch hẹn và nhận nhắc nhở từ ứng dụng.'
-          );
+          setToastMsg('Chưa bật thông báo rồi! 🔔');
+          setToastSub('Hãy cấp quyền thông báo trong cài đặt để lên lịch họp nhé! 🌸');
+          setToastBadge('🔔');
+          setToastVisible(true);
           return;
         }
       } catch (err) {
         console.log('Notification permission check failed:', err);
-        Alert.alert(
-          'Yêu cầu quyền thông báo',
-          'Vui lòng cấp quyền thông báo trong cài đặt trình duyệt/thiết bị để lên lịch hẹn.'
-        );
+        setToastMsg('Yêu cầu quyền thông báo! 🔔');
+        setToastSub('Vui lòng cấp quyền thông báo trong cài đặt để lên lịch họp.');
+        setToastBadge('🔔');
+        setToastVisible(true);
         return;
       }
     } else {
-      console.log('Notification API is not supported on this browser/device.');
+      // Chrome iOS warning
+      setToastMsg('Chưa bật thông báo rồi! 🔔');
+      setToastSub('Chrome iOS không hỗ trợ thông báo đẩy trực tiếp. Vui lòng dùng Safari hoặc thêm ứng dụng ra Màn hình chính nhé! 🌸');
+      setToastBadge('🔔');
+      setToastVisible(true);
+      return;
     }
 
     const timeString = `${String(eventHour).padStart(2, '0')}:${String(eventMinute).padStart(2, '0')} ${eventPeriod}`;
@@ -133,7 +148,10 @@ export const CalendarScreen: React.FC = () => {
     const { pageX, pageY } = e?.nativeEvent || {};
     confettiRef.current?.trigger(pageX || 200, pageY || 350, ['📅', '⏰', '🎉', '✨', '🎈']);
     
-    Alert.alert('Thành công', 'Đã lên lịch hẹn và cài đặt nhắc nhở thiết bị! ⏰');
+    setToastMsg('Đặt lịch thành công! 🎉');
+    setToastSub('Ứng dụng sẽ nhắc nhở bạn khi đến giờ họp. 💕');
+    setToastBadge('📅');
+    setToastVisible(true);
   };
 
   const getMonthYearString = () => {
@@ -331,6 +349,13 @@ export const CalendarScreen: React.FC = () => {
         </View>
       </ScrollView>
       <ConfettiView ref={confettiRef} />
+      <CheerToast
+        visible={toastVisible}
+        message={toastMsg}
+        subtitle={toastSub}
+        badge={toastBadge}
+        onHide={() => setToastVisible(false)}
+      />
     </View>
   );
 };

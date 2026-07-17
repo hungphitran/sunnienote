@@ -6,6 +6,7 @@ interface CheerToastProps {
   visible: boolean;
   message?: string;
   subtitle?: string;
+  badge?: string;
   onHide: () => void;
   duration?: number;
 }
@@ -14,6 +15,7 @@ export const CheerToast: React.FC<CheerToastProps> = ({
   visible,
   message = 'Bạn thật tuyệt vời! 🌟',
   subtitle = 'Another step toward your goals.',
+  badge = '🌟',
   onHide,
   duration = 3000,
 }) => {
@@ -77,7 +79,7 @@ export const CheerToast: React.FC<CheerToastProps> = ({
     >
       <View style={styles.content}>
         <View style={styles.badgeContainer}>
-          <Text style={styles.badge}>🌟</Text>
+          <Text style={styles.badge}>{badge}</Text>
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.title}>{message}</Text>
