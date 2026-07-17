@@ -56,9 +56,35 @@ export const CalendarScreen: React.FC = () => {
   // Filter events for the selected date
   const filteredEvents = db.events.filter(e => e.date === activeDay.dateString);
 
-  const handleScheduleEvent = (e: any) => {
+  const handleScheduleEvent = async (e: any) => {
     if (!eventTitle.trim()) {
       Alert.alert('Lỗi', 'Vui lòng nhập tiêu đề sự kiện.');
+      return;
+    }
+
+    // Enforce browser/device notification permission before scheduling
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      
+      if (finalStatus !== 'granted') {
+        Alert.alert(
+          'Yêu cầu quyền thông báo',
+          'Bạn cần cho phép gửi thông báo để có thể đặt lịch hẹn và nhận nhắc nhở từ ứng dụng.'
+        );
+        return;
+      }
+    } catch (err) {
+      console.log('Notification permission check failed:', err);
+      Alert.alert(
+        'Yêu cầu quyền thông báo',
+        'Vui lòng cấp quyền thông báo trong cài đặt trình duyệt/thiết bị để lên lịch hẹn.'
+      );
       return;
     }
 
