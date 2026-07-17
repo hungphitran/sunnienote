@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { StyleSheet, Text, View, Image, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
 import { Ionicons } from '@expo/vector-icons';
@@ -62,30 +62,36 @@ export const CalendarScreen: React.FC = () => {
       return;
     }
 
-    // Enforce browser/device notification permission before scheduling
-    try {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      
-      if (finalStatus !== 'granted') {
+    const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
+
+    if (isNotificationSupported) {
+      // Enforce browser/device notification permission before scheduling
+      try {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        
+        if (finalStatus !== 'granted') {
+          Alert.alert(
+            'Yêu cầu quyền thông báo',
+            'Bạn cần cho phép gửi thông báo để có thể đặt lịch hẹn và nhận nhắc nhở từ ứng dụng.'
+          );
+          return;
+        }
+      } catch (err) {
+        console.log('Notification permission check failed:', err);
         Alert.alert(
           'Yêu cầu quyền thông báo',
-          'Bạn cần cho phép gửi thông báo để có thể đặt lịch hẹn và nhận nhắc nhở từ ứng dụng.'
+          'Vui lòng cấp quyền thông báo trong cài đặt trình duyệt/thiết bị để lên lịch hẹn.'
         );
         return;
       }
-    } catch (err) {
-      console.log('Notification permission check failed:', err);
-      Alert.alert(
-        'Yêu cầu quyền thông báo',
-        'Vui lòng cấp quyền thông báo trong cài đặt trình duyệt/thiết bị để lên lịch hẹn.'
-      );
-      return;
+    } else {
+      console.log('Notification API is not supported on this browser/device.');
     }
 
     const timeString = `${String(eventHour).padStart(2, '0')}:${String(eventMinute).padStart(2, '0')} ${eventPeriod}`;
@@ -107,7 +113,7 @@ export const CalendarScreen: React.FC = () => {
     const [year, month, day] = activeDay.dateString.split('-').map(Number);
     const scheduledTime = new Date(year, month - 1, day, finalHour, eventMinute, 0);
 
-    if (scheduledTime > new Date()) {
+    if (isNotificationSupported && scheduledTime > new Date()) {
       Notifications.scheduleNotificationAsync({
         content: {
           title: `Nhắc nhở sự kiện: ${eventTitle.trim()}`,
