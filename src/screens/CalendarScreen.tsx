@@ -101,9 +101,23 @@ export const CalendarScreen: React.FC = () => {
         return;
       }
     } else {
-      // Chrome iOS warning
-      setToastMsg('Chưa bật thông báo rồi! 🔔');
-      setToastSub('Chrome iOS không hỗ trợ thông báo đẩy trực tiếp. Vui lòng dùng Safari hoặc thêm ứng dụng ra Màn hình chính nhé! 🌸');
+      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const isIOS = Platform.OS === 'web' && /iPad|iPhone|iPod/.test(userAgent);
+      
+      if (isIOS) {
+        const isChrome = /CriOS/i.test(userAgent);
+        if (isChrome) {
+          setToastMsg('Chưa bật thông báo rồi! 🔔');
+          setToastSub('Chrome iOS không hỗ trợ thông báo trên tab. Vui lòng mở bằng Safari và chọn "Thêm vào MH chính" nhé! 🌸');
+        } else {
+          setToastMsg('Chưa bật thông báo rồi! 🔔');
+          setToastSub('Vui lòng chạm vào nút Chia sẻ (Share) ➡️ "Thêm vào MH chính" (Add to Home Screen) ngoài màn hình để nhận thông báo nhé! 🌸');
+        }
+      } else {
+        setToastMsg('Chưa bật thông báo rồi! 🔔');
+        setToastSub('Trình duyệt của bạn không hỗ trợ hoặc đang chặn thông báo. Vui lòng cấp quyền thông báo trong cài đặt nhé! 🌸');
+      }
+      
       setToastBadge('🔔');
       setToastVisible(true);
       return;
