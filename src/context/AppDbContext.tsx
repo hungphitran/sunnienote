@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { Platform } from 'react-native';
+
 
 // --- TYPES ---
 export interface Task {
@@ -99,13 +101,16 @@ interface AppDbContextType {
 
 const STORAGE_KEY = '@sunnie_db_v1';
 
-// --- MOCK INITIAL DATA ---
-const getTodayDateString = () => {
-  const d = new Date();
+// --- DATE HELPERS ---
+export const getLocalDateString = (d: Date) => {
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${d.getFullYear()}-${month}-${day}`;
 };
+
+export const getTodayDateString = () => getLocalDateString(new Date());
+
+// --- MOCK INITIAL DATA ---
 
 const initialMockDb: AppDatabase = {
   tasks: [],
@@ -362,6 +367,20 @@ export const AppDbProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const exportDatabase = async () => {
     try {
       const dbString = JSON.stringify(db, null, 2);
+      
+      if (Platform.OS === 'web') {
+        const blob = new Blob([dbString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sunnie_backup.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return;
+      }
+
       const fileUri = FileSystem.documentDirectory + 'sunnie_backup.json';
       await FileSystem.writeAsStringAsync(fileUri, dbString, {
         encoding: FileSystem.EncodingType.UTF8,

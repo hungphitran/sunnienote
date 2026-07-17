@@ -4,7 +4,7 @@ import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
 import { WaveProgress } from '../components/WaveProgress';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppDb, Event } from '../context/AppDbContext';
+import { useAppDb, Event, getTodayDateString } from '../context/AppDbContext';
 
 interface DashboardScreenProps {
   onNavigateToTab: (tabIndex: number) => void;
@@ -28,7 +28,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
 
   // Get water intake for today
   const getTodayWater = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayDateString();
     const log = db.waterHistory.find(h => h.date === today);
     return log ? log.amount : 0;
   };
@@ -40,7 +40,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
 
   // Get current logged mood for today
   const getTodayMood = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayDateString();
     const log = db.moodHistory.find(m => m.date === today);
     return log ? log.mood : null;
   };
@@ -50,7 +50,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
   // Determine if an event is in the future
   const isFutureEvent = (event: Event) => {
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = getTodayDateString();
     
     if (event.date > todayStr) return true;
     if (event.date < todayStr) return false;

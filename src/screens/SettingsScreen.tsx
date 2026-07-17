@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, Switch, Alert, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, Switch, Alert, TextInput, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,9 +44,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
       if (result.canceled) return;
 
       const fileUri = result.assets[0].uri;
-      const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
+      let fileContent = '';
+
+      if (Platform.OS === 'web') {
+        const response = await fetch(fileUri);
+        fileContent = await response.text();
+      } else {
+        fileContent = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.UTF8,
+        });
+      }
 
       const success = await importDatabase(fileContent);
       if (success) {

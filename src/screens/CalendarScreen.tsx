@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, Image, ScrollView, TextInput, TouchableOpacity,
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppDb, Event } from '../context/AppDbContext';
+import { useAppDb, Event, getLocalDateString } from '../context/AppDbContext';
 
 export const CalendarScreen: React.FC = () => {
   const { db, addEvent, toggleAlarm, deleteEvent } = useAppDb();
@@ -36,7 +36,7 @@ export const CalendarScreen: React.FC = () => {
       
       const dayLabel = weekdays[dayIndex];
       const dayNum = d.getDate();
-      const dateString = d.toISOString().split('T')[0];
+      const dateString = getLocalDateString(d);
 
       days.push({
         label: dayLabel,
