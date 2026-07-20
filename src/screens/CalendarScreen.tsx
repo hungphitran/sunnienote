@@ -73,9 +73,10 @@ export const CalendarScreen: React.FC = () => {
     }
 
     const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
+    let hasNotificationPermission = false;
+    let permissionWarning: { msg: string; sub: string } | null = null;
 
     if (isNotificationSupported) {
-      // Enforce browser/device notification permission before scheduling
       try {
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
@@ -85,20 +86,20 @@ export const CalendarScreen: React.FC = () => {
           finalStatus = status;
         }
         
-        if (finalStatus !== 'granted') {
-          setToastMsg('Chưa bật thông báo rồi! 🔔');
-          setToastSub('Hãy cấp quyền thông báo trong cài đặt để lên lịch họp nhé! 🌸');
-          setToastBadge('🔔');
-          setToastVisible(true);
-          return;
+        if (finalStatus === 'granted') {
+          hasNotificationPermission = true;
+        } else {
+          permissionWarning = {
+            msg: 'Chưa bật thông báo rồi! 🔔',
+            sub: 'Lịch họp đã lưu nhưng không có nhắc nhở do chưa được cấp quyền. 🌸',
+          };
         }
       } catch (err) {
         console.log('Notification permission check failed:', err);
-        setToastMsg('Yêu cầu quyền thông báo! 🔔');
-        setToastSub('Vui lòng cấp quyền thông báo trong cài đặt để lên lịch họp.');
-        setToastBadge('🔔');
-        setToastVisible(true);
-        return;
+        permissionWarning = {
+          msg: 'Yêu cầu quyền thông báo! 🔔',
+          sub: 'Lịch họp đã lưu nhưng không có nhắc nhở do lỗi quyền truy cập.',
+        };
       }
     } else {
       const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
@@ -106,35 +107,24 @@ export const CalendarScreen: React.FC = () => {
       
       if (isIOS) {
         const isChrome = /CriOS/i.test(userAgent);
-        if (isChrome) {
-          setToastMsg('Chưa bật thông báo rồi! 🔔');
-          setToastSub('Chrome iOS không hỗ trợ thông báo trên tab. Vui lòng mở bằng Safari và chọn "Thêm vào MH chính" nhé! 🌸');
-        } else {
-          setToastMsg('Chưa bật thông báo rồi! 🔔');
-          setToastSub('Vui lòng chạm vào nút Chia sẻ (Share) ➡️ "Thêm vào MH chính" (Add to Home Screen) ngoài màn hình để nhận thông báo nhé! 🌸');
-        }
+        permissionWarning = {
+          msg: 'Chưa bật thông báo rồi! 🔔',
+          sub: isChrome 
+            ? 'Chrome iOS không hỗ trợ thông báo trên tab. Lịch họp đã được lưu cục bộ. 🌸'
+            : 'Vui lòng "Thêm vào MH chính" để nhận thông báo. Lịch họp đã được lưu cục bộ. 🌸',
+        };
       } else {
-        setToastMsg('Chưa bật thông báo rồi! 🔔');
-        setToastSub('Trình duyệt của bạn không hỗ trợ hoặc đang chặn thông báo. Vui lòng cấp quyền thông báo trong cài đặt nhé! 🌸');
+        permissionWarning = {
+          msg: 'Trình duyệt không hỗ trợ! 🔔',
+          sub: 'Thiết bị/Trình duyệt không hỗ trợ thông báo đẩy. Lịch họp đã được lưu cục bộ. 🌸',
+        };
       }
-      
-      setToastBadge('🔔');
-      setToastVisible(true);
-      return;
     }
 
     const timeString = `${String(eventHour).padStart(2, '0')}:${String(eventMinute).padStart(2, '0')} ${eventPeriod}`;
-    
-    addEvent({
-      title: eventTitle.trim(),
-      category: 'Meeting',
-      date: activeDay.dateString,
-      time: timeString,
-      location: eventLocation.trim() || undefined,
-      alarmActive: true,
-    });
+    let notificationId: string | undefined = undefined;
 
-    // Schedule local notification on device
+    // Calculate schedule time
     let finalHour = eventHour;
     if (eventPeriod === 'PM' && eventHour < 12) finalHour += 12;
     if (eventPeriod === 'AM' && eventHour === 12) finalHour = 0;
@@ -142,19 +132,33 @@ export const CalendarScreen: React.FC = () => {
     const [year, month, day] = activeDay.dateString.split('-').map(Number);
     const scheduledTime = new Date(year, month - 1, day, finalHour, eventMinute, 0);
 
-    if (isNotificationSupported && scheduledTime > new Date()) {
-      Notifications.scheduleNotificationAsync({
-        content: {
-          title: `Nhắc nhở sự kiện: ${eventTitle.trim()}`,
-          body: `Lịch hẹn lúc ${timeString}${eventLocation.trim() ? ' tại ' + eventLocation.trim() : ''}`,
-          sound: true,
-        },
-        trigger: {
-          type: 'date',
-          date: scheduledTime,
-        } as any,
-      }).catch(err => console.log('Notification scheduling failed', err));
+    if (hasNotificationPermission && scheduledTime > new Date()) {
+      try {
+        notificationId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `Nhắc nhở sự kiện: ${eventTitle.trim()}`,
+            body: `Lịch hẹn lúc ${timeString}${eventLocation.trim() ? ' tại ' + eventLocation.trim() : ''}`,
+            sound: true,
+          },
+          trigger: {
+            type: 'date',
+            date: scheduledTime,
+          } as any,
+        });
+      } catch (err) {
+        console.log('Notification scheduling failed', err);
+      }
     }
+
+    addEvent({
+      title: eventTitle.trim(),
+      category: 'Meeting',
+      date: activeDay.dateString,
+      time: timeString,
+      location: eventLocation.trim() || undefined,
+      alarmActive: !!notificationId,
+      notificationId,
+    });
 
     setEventTitle('');
     setEventLocation('');
@@ -162,9 +166,23 @@ export const CalendarScreen: React.FC = () => {
     const { pageX, pageY } = e?.nativeEvent || {};
     confettiRef.current?.trigger(pageX || 200, pageY || 350, ['📅', '⏰', '🎉', '✨', '🎈']);
     
-    setToastMsg('Đặt lịch thành công! 🎉');
-    setToastSub('Ứng dụng sẽ nhắc nhở bạn khi đến giờ họp. 💕');
-    setToastBadge('📅');
+    if (notificationId) {
+      setToastMsg('Đặt lịch thành công! 🎉');
+      setToastSub('Ứng dụng sẽ nhắc nhở bạn khi đến giờ họp. 💕');
+      setToastBadge('📅');
+    } else if (scheduledTime <= new Date()) {
+      setToastMsg('Đã lưu cuộc họp! 📅');
+      setToastSub('Cuộc họp trong quá khứ nên không đặt thông báo nhé. ✨');
+      setToastBadge('📅');
+    } else if (permissionWarning) {
+      setToastMsg(permissionWarning.msg);
+      setToastSub(permissionWarning.sub);
+      setToastBadge('🔔');
+    } else {
+      setToastMsg('Đã lưu cuộc họp! 📅');
+      setToastSub('Lịch họp đã được ghi nhận thành công. ✨');
+      setToastBadge('📅');
+    }
     setToastVisible(true);
   };
 
@@ -341,20 +359,49 @@ export const CalendarScreen: React.FC = () => {
                       </View>
                     </View>
 
-                    {/* Alarm Toggle Button */}
-                    <BouncyPressable
-                      onPress={() => toggleAlarm(event.id)}
-                      style={[
-                        styles.alarmButton,
-                        event.alarmActive && styles.alarmButtonActive
-                      ]}
-                    >
-                      <MaterialIcons
-                        name={event.alarmActive ? 'notifications' : 'notifications-off'}
-                        size={18}
-                        color={event.alarmActive ? COLORS.onSecondary : COLORS.outline}
-                      />
-                    </BouncyPressable>
+                    <View style={styles.actionButtonsContainer}>
+                      {/* Alarm Toggle Button */}
+                      <BouncyPressable
+                        onPress={() => toggleAlarm(event.id)}
+                        style={[
+                          styles.alarmButton,
+                          event.alarmActive && styles.alarmButtonActive
+                        ]}
+                      >
+                        <MaterialIcons
+                          name={event.alarmActive ? 'notifications' : 'notifications-off'}
+                          size={18}
+                          color={event.alarmActive ? COLORS.onSecondary : COLORS.outline}
+                        />
+                      </BouncyPressable>
+
+                      {/* Delete Event Button */}
+                      <BouncyPressable
+                        onPress={() => {
+                          if (Platform.OS === 'web') {
+                            if (confirm('Bạn có chắc chắn muốn xóa lịch hẹn này không?')) {
+                              deleteEvent(event.id);
+                            }
+                          } else {
+                            Alert.alert(
+                              'Xóa lịch hẹn',
+                              'Bạn có chắc chắn muốn xóa lịch hẹn này không?',
+                              [
+                                { text: 'Hủy', style: 'cancel' },
+                                { text: 'Xóa', style: 'destructive', onPress: () => deleteEvent(event.id) }
+                              ]
+                            );
+                          }
+                        }}
+                        style={styles.deleteButton}
+                      >
+                        <MaterialIcons
+                          name="delete-outline"
+                          size={18}
+                          color={COLORS.error}
+                        />
+                      </BouncyPressable>
+                    </View>
                   </View>
                 </View>
               ))
@@ -667,5 +714,18 @@ const styles = StyleSheet.create({
   },
   alarmButtonActive: {
     backgroundColor: COLORS.secondary,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  deleteButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.surfaceContainerLow,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

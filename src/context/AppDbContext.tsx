@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 
 // --- TYPES ---
@@ -23,6 +24,7 @@ export interface Event {
   location?: string;
   isUrgent?: boolean;
   alarmActive?: boolean;
+  notificationId?: string;
 }
 
 export interface ChecklistItem {
@@ -55,6 +57,7 @@ export interface UserSettings {
   theme: 'light' | 'dark';
   waterReminder: boolean;
   meetingsReminder: boolean;
+  pushToken?: string;
   currentUser: {
     name: string;
     email: string;
@@ -79,8 +82,8 @@ interface AppDbContextType {
   deleteTask: (id: string) => void;
   // Events Actions
   addEvent: (event: Omit<Event, 'id'>) => void;
-  toggleAlarm: (id: string) => void;
-  deleteEvent: (id: string) => void;
+  toggleAlarm: (id: string) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
   // Notes Actions
   addNote: (note: Omit<Note, 'id' | 'date'>) => void;
   updateNote: (id: string, updatedFields: Partial<Omit<Note, 'id'>>) => void;
@@ -122,6 +125,7 @@ const initialMockDb: AppDatabase = {
     theme: 'light',
     waterReminder: true,
     meetingsReminder: false,
+    pushToken: undefined,
     currentUser: {
       name: 'Sunshine',
       email: 'sunshine.hello'
@@ -241,14 +245,77 @@ export const AppDbProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     saveDb({ ...db, events: [...db.events, newEvent] });
   };
 
-  const toggleAlarm = (id: string) => {
+  const toggleAlarm = async (id: string) => {
+    const event = db.events.find(e => e.id === id);
+    if (!event) return;
+
+    const newAlarmActive = !event.alarmActive;
+    let newNotificationId = event.notificationId;
+
+    const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
+
+    if (isNotificationSupported) {
+      if (!newAlarmActive) {
+        // Tắt báo thức -> Hủy thông báo cũ
+        if (event.notificationId) {
+          try {
+            await Notifications.cancelScheduledNotificationAsync(event.notificationId);
+          } catch (e) {
+            console.log('Failed to cancel notification:', e);
+          }
+        }
+        newNotificationId = undefined;
+      } else {
+        // Bật báo thức -> Lên lịch thông báo mới
+        try {
+          const [year, month, day] = event.date.split('-').map(Number);
+          const timeParts = event.time.split(' ');
+          const timePart = timeParts[0]; // e.g. "09:30"
+          const period = timeParts[1]; // "AM" or "PM"
+          let [hours, minutes] = timePart.split(':').map(Number);
+          
+          if (period === 'PM' && hours < 12) hours += 12;
+          if (period === 'AM' && hours === 12) hours = 0;
+
+          const scheduledTime = new Date(year, month - 1, day, hours, minutes, 0);
+
+          if (scheduledTime > new Date()) {
+            newNotificationId = await Notifications.scheduleNotificationAsync({
+              content: {
+                title: `Nhắc nhở sự kiện: ${event.title}`,
+                body: `Lịch hẹn lúc ${event.time}${event.location ? ' tại ' + event.location : ''}`,
+                sound: true,
+              },
+              trigger: {
+                type: 'date',
+                date: scheduledTime,
+              } as any,
+            });
+          }
+        } catch (e) {
+          console.log('Failed to reschedule notification:', e);
+        }
+      }
+    }
+
     const updated = db.events.map(e =>
-      e.id === id ? { ...e, alarmActive: !e.alarmActive } : e
+      e.id === id ? { ...e, alarmActive: newAlarmActive, notificationId: newNotificationId } : e
     );
     saveDb({ ...db, events: updated });
   };
 
-  const deleteEvent = (id: string) => {
+  const deleteEvent = async (id: string) => {
+    const event = db.events.find(e => e.id === id);
+    const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
+    
+    if (event && event.notificationId && isNotificationSupported) {
+      try {
+        await Notifications.cancelScheduledNotificationAsync(event.notificationId);
+      } catch (e) {
+        console.log('Failed to cancel notification on delete:', e);
+      }
+    }
+
     const filtered = db.events.filter(e => e.id !== id);
     saveDb({ ...db, events: filtered });
   };

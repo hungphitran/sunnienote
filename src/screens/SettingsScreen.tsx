@@ -134,6 +134,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
         if (response.ok) {
           Alert.alert('Thành công', 'Đã đăng ký nhận thông báo hệ thống thành công! 🔔');
           setNotificationStatus('granted');
+          updateUserSettings({ pushToken: subscription.endpoint });
         } else {
           Alert.alert('Lưu ý', 'Đăng ký thành công trên trình duyệt nhưng không lưu được trên backend server.');
         }
@@ -150,6 +151,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
       setNotificationStatus(status);
       if (status === 'granted') {
         Alert.alert('Thành công', 'Đã bật quyền nhận thông báo từ Sunnie! 🔔');
+        // Fetch and register Expo Push Token for Native device
+        const projectId = '211455b2-e8f6-4c2f-9f59-aeade1898efe';
+        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+        const token = tokenData.data;
+        if (token) {
+          updateUserSettings({ pushToken: token });
+          console.log('Successfully registered push token manually:', token);
+        }
       } else {
         Alert.alert(
           'Quyền bị từ chối',

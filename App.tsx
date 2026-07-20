@@ -36,8 +36,25 @@ import { NoteDetailScreen } from './src/screens/NoteDetailScreen';
 import { TasksScreen } from './src/screens/TasksScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 
+const VAPID_PUBLIC_KEY = 'BIrUiRolvPe5JpsBnlLnhz_tR7wk95zw_axWnsAm7ddVPJD9njR9Uj0sjVdXzKOlwWXN1ge2aj3rliYz6Z44-MQ';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 function MainApp() {
-  const { db, loading: dbLoading } = useAppDb();
+  const { db, loading: dbLoading, updateUserSettings } = useAppDb();
   
   // Navigation State
   // Boot directly to main application, skipping login/onboarding
@@ -50,6 +67,66 @@ function MainApp() {
   // Sub-navigation for Note Detail:
   // undefined = showing tabs, null = creating new note, string = editing note ID
   const [activeNoteId, setActiveNoteId] = useState<string | null | undefined>(undefined);
+
+  // Auto-check and register device token if permission is granted but token is missing
+  useEffect(() => {
+    if (dbLoading || flowState !== 'app' || db.settings.pushToken) return;
+
+    const autoCheckAndRegisterPushToken = async () => {
+      const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
+      if (!isNotificationSupported) return;
+
+      try {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        if (existingStatus !== 'granted') return;
+
+        console.log('Notification permission is already granted, but pushToken is missing. Registering now...');
+
+        if (Platform.OS === 'web') {
+          if ('serviceWorker' in navigator && 'PushManager' in window) {
+            let registration = await navigator.serviceWorker.getRegistration();
+            if (!registration) {
+              registration = await navigator.serviceWorker.register('/sw.js');
+            }
+            await navigator.serviceWorker.ready;
+
+            let subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+              const subscribeOptions = {
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+              };
+              subscription = await registration.pushManager.subscribe(subscribeOptions);
+              
+              // Register with backend
+              await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(subscription),
+              });
+            }
+
+            if (subscription && subscription.endpoint) {
+              updateUserSettings({ pushToken: subscription.endpoint });
+              console.log('Auto-registered web push token:', subscription.endpoint);
+            }
+          }
+        } else {
+          const projectId = '211455b2-e8f6-4c2f-9f59-aeade1898efe';
+          const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+          const token = tokenData.data;
+          if (token) {
+            updateUserSettings({ pushToken: token });
+            console.log('Auto-registered native push token:', token);
+          }
+        }
+      } catch (err) {
+        console.log('Auto-registration of push token failed:', err);
+      }
+    };
+
+    autoCheckAndRegisterPushToken();
+  }, [dbLoading, flowState, db.settings.pushToken]);
 
   if (dbLoading) {
     return (
