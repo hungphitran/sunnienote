@@ -1,10 +1,10 @@
 const webpush = require('web-push');
+const { getDbClient } = require('./_db');
 
-// Global in-memory storage for subscriptions
+// Global in-memory fallback storage for subscriptions
 global.subscriptions = global.subscriptions || [];
 
-// Fallback VAPID keys (For instant local testing/demo).
-// You should override these via environment variables in production!
+// Fallback VAPID keys
 const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'BIrUiRolvPe5JpsBnlLnhz_tR7wk95zw_axWnsAm7ddVPJD9njR9Uj0sjVdXzKOlwWXN1ge2aj3rliYz6Z44-MQ';
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'ADKLyKnCTKQLFiC9NK4iWubtpCnn9wmcz3Z7VJuaMdI';
 
@@ -35,20 +35,66 @@ module.exports = async (req, res) => {
     url: url || '/'
   });
 
-  console.log(`Sending notification to ${global.subscriptions.length} subscribers...`);
+  const client = await getDbClient();
+  let subscriptions = [];
+  let isPostgres = false;
 
-  const notifications = global.subscriptions.map((subscription) => {
-    return webpush.sendNotification(subscription, payload)
-      .catch((error) => {
-        console.error('Error sending push notification:', error);
-        // Remove dead subscriptions if they are no longer valid (e.g. status code 410 or 404)
-        if (error.statusCode === 410 || error.statusCode === 404) {
-          global.subscriptions = global.subscriptions.filter(sub => sub.endpoint !== subscription.endpoint);
+  if (client) {
+    try {
+      const resDb = await client.query('SELECT endpoint, keys_p256dh, keys_auth FROM web_push_subscriptions');
+      subscriptions = resDb.rows.map(row => ({
+        endpoint: row.endpoint,
+        keys: {
+          p256dh: row.keys_p256dh,
+          auth: row.keys_auth
         }
-      });
+      }));
+      isPostgres = true;
+    } catch (err) {
+      console.error('PostgreSQL get subscriptions error:', err);
+    }
+  }
+
+  if (!isPostgres) {
+    subscriptions = global.subscriptions;
+  }
+
+  console.log(`Sending notification to ${subscriptions.length} subscribers (via ${isPostgres ? 'postgresql' : 'memory'})...`);
+
+  const notifications = subscriptions.map(async (subscription) => {
+    try {
+      await webpush.sendNotification(subscription, payload);
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+      
+      // Cleanup dead subscriptions (410 Gone or 404 Not Found)
+      if (error.statusCode === 410 || error.statusCode === 404) {
+        if (isPostgres && client) {
+          try {
+            await client.query('DELETE FROM web_push_subscriptions WHERE endpoint = $1', [subscription.endpoint]);
+            console.log(`Deleted expired subscription from PostgreSQL: ${subscription.endpoint}`);
+          } catch (deleteErr) {
+            console.error('Error deleting expired subscription from PostgreSQL:', deleteErr);
+          }
+        } else {
+          global.subscriptions = global.subscriptions.filter(sub => sub.endpoint !== subscription.endpoint);
+          console.log(`Deleted expired subscription from Memory: ${subscription.endpoint}`);
+        }
+      }
+    }
   });
 
   await Promise.all(notifications);
 
-  return res.status(200).json({ success: true, sentCount: notifications.length });
+  if (isPostgres && client) {
+    try {
+      await client.end();
+    } catch (e) {}
+  }
+
+  return res.status(200).json({ 
+    success: true, 
+    sentCount: subscriptions.length,
+    storage: isPostgres ? 'postgresql' : 'memory' 
+  });
 };
