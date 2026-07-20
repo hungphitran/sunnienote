@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, Image, ScrollView, Switch, Alert, TextInput, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAppDb } from '../context/AppDbContext';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -101,7 +101,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
           <Text style={styles.headerTitle}>Sunnie</Text>
         </View>
         <BouncyPressable style={styles.notificationButton}>
-          <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
+          <MaterialIcons name="notifications-none" size={24} color={COLORS.primary} />
         </BouncyPressable>
       </View>
 
@@ -135,7 +135,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
             {/* Water Toggle */}
             <View style={styles.rowItem}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="water-outline" size={20} color={COLORS.tertiary} style={styles.rowIcon} />
+                <MaterialIcons name="opacity" size={20} color={COLORS.tertiary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Uống nước hàng ngày</Text>
               </View>
               <Switch
@@ -149,7 +149,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
             {/* Meeting Toggle */}
             <View style={styles.rowItem}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="calendar-outline" size={20} color={COLORS.tertiary} style={styles.rowIcon} />
+                <MaterialIcons name="calendar-month" size={20} color={COLORS.tertiary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Lịch họp & Sự kiện</Text>
               </View>
               <Switch
@@ -167,29 +167,29 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
 
             <BouncyPressable style={styles.rowItemBtn}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="color-palette-outline" size={20} color={COLORS.primary} style={styles.rowIcon} />
+                <MaterialIcons name="palette" size={20} color={COLORS.primary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Giao diện & Màu sắc</Text>
               </View>
               <View style={styles.rowRightSide}>
                 <Text style={styles.rowDetailText}>{db.settings.theme === 'dark' ? 'Tối' : 'Sáng'}</Text>
-                <Ionicons name="chevron-forward" size={18} color={COLORS.outline} />
+                <MaterialIcons name="chevron-right" size={18} color={COLORS.outline} />
               </View>
             </BouncyPressable>
 
             <BouncyPressable style={styles.rowItemBtn}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} style={styles.rowIcon} />
+                <MaterialIcons name="lock-outline" size={20} color={COLORS.primary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Đổi mật khẩu</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.outline} />
+              <MaterialIcons name="chevron-right" size={18} color={COLORS.outline} />
             </BouncyPressable>
 
             <BouncyPressable style={styles.rowItemBtn}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="help-circle-outline" size={20} color={COLORS.primary} style={styles.rowIcon} />
+                <MaterialIcons name="help-outline" size={20} color={COLORS.primary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Trợ giúp</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.outline} />
+              <MaterialIcons name="chevron-right" size={18} color={COLORS.outline} />
             </BouncyPressable>
           </View>
 
@@ -199,7 +199,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
 
             <View style={styles.rowItem}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="server-outline" size={20} color={COLORS.secondary} style={styles.rowIcon} />
+                <MaterialIcons name="storage" size={20} color={COLORS.secondary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Dung lượng đã tiêu thụ</Text>
               </View>
               <Text style={styles.memorySizeText}>{formatSize(getDbSize())}</Text>
@@ -207,34 +207,34 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
 
             <BouncyPressable onPress={handlePruning} style={styles.rowItemBtn}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="brush-outline" size={20} color={COLORS.secondary} style={styles.rowIcon} />
+                <MaterialIcons name="brush" size={20} color={COLORS.secondary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Tự động dọn dẹp nhật ký</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.outline} />
+              <MaterialIcons name="chevron-right" size={18} color={COLORS.outline} />
             </BouncyPressable>
 
             <BouncyPressable onPress={exportDatabase} style={styles.rowItemBtn}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="download-outline" size={20} color={COLORS.secondary} style={styles.rowIcon} />
+                <MaterialIcons name="download" size={20} color={COLORS.secondary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Xuất tệp tin cục bộ (Backup JSON)</Text>
               </View>
-              <Ionicons name="share-social-outline" size={18} color={COLORS.outline} />
+              <MaterialIcons name="share" size={18} color={COLORS.outline} />
             </BouncyPressable>
 
             <BouncyPressable onPress={handleImport} style={styles.rowItemBtn}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="cloud-upload-outline" size={20} color={COLORS.secondary} style={styles.rowIcon} />
+                <MaterialIcons name="file-upload" size={20} color={COLORS.secondary} style={styles.rowIcon} />
                 <Text style={styles.rowText}>Khôi phục dữ liệu (Import JSON)</Text>
               </View>
-              <Ionicons name="document-attach-outline" size={18} color={COLORS.outline} />
+              <MaterialIcons name="attachment" size={18} color={COLORS.outline} />
             </BouncyPressable>
 
             <BouncyPressable onPress={handleReset} style={styles.rowItemBtn}>
               <View style={styles.rowLabelGroup}>
-                <Ionicons name="refresh-circle-outline" size={20} color={COLORS.error} style={styles.rowIcon} />
+                <MaterialIcons name="refresh" size={20} color={COLORS.error} style={styles.rowIcon} />
                 <Text style={[styles.rowText, { color: COLORS.error }]}>Khôi phục cài đặt gốc</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.outline} />
+              <MaterialIcons name="chevron-right" size={18} color={COLORS.outline} />
             </BouncyPressable>
           </View>
 
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.marginMobile,
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 50 : Platform.OS === 'android' ? 40 : 20,
     paddingBottom: SPACING.sm,
     backgroundColor: COLORS.background,
     borderBottomWidth: 1,

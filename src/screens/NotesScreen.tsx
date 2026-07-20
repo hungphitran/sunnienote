@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, TextInput, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, TextInput, FlatList, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAppDb, Note } from '../context/AppDbContext';
 
 interface NotesScreenProps {
@@ -34,11 +34,11 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
   // Icons based on note content or category
   const getNoteIcon = (note: Note) => {
     const title = note.title.toLowerCase();
-    if (title.includes('gym') || title.includes('fit') || title.includes('run')) return 'fitness-outline';
-    if (title.includes('study') || title.includes('history') || title.includes('learn') || title.includes('session')) return 'book-outline';
-    if (title.includes('art') || title.includes('project') || title.includes('paint') || title.includes('craft')) return 'color-palette-outline';
-    if (note.checklist && note.checklist.length > 0) return 'list-circle-outline';
-    return 'document-text-outline';
+    if (title.includes('gym') || title.includes('fit') || title.includes('run')) return 'directions-run';
+    if (title.includes('study') || title.includes('history') || title.includes('learn') || title.includes('session')) return 'menu-book';
+    if (title.includes('art') || title.includes('project') || title.includes('paint') || title.includes('craft')) return 'palette';
+    if (note.checklist && note.checklist.length > 0) return 'format-list-bulleted';
+    return 'sticky-note-2';
   };
 
   const getCategoryColor = (cat: Note['category']) => {
@@ -75,14 +75,14 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
           <Text style={styles.greetingText}>Hi, {db.settings.currentUser?.name || 'Sunshine'}!</Text>
         </View>
         <BouncyPressable style={styles.notificationButton}>
-          <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
+          <MaterialIcons name="notifications-none" size={24} color={COLORS.primary} />
         </BouncyPressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Section */}
         <View style={[styles.searchContainer, searchFocused && styles.searchContainerFocused]}>
-          <Ionicons name="search" size={20} color={COLORS.outline} />
+          <MaterialIcons name="search" size={20} color={COLORS.outline} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search for your notes..."
@@ -93,7 +93,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
             onBlur={() => setSearchFocused(false)}
           />
           <BouncyPressable>
-            <Ionicons name="funnel-outline" size={20} color={COLORS.primary} />
+            <MaterialIcons name="filter-list" size={20} color={COLORS.primary} />
           </BouncyPressable>
         </View>
 
@@ -138,7 +138,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
               style={styles.featuredCard}
             >
               <View style={styles.decorIconContainer}>
-                <Ionicons name="gift-outline" size={100} color={COLORS.primary + '15'} style={styles.decorIcon} />
+                <MaterialIcons name="sticky-note-2" size={100} color={COLORS.primary + '15'} style={styles.decorIcon} />
               </View>
               
               <View style={styles.featuredCardHeader}>
@@ -154,11 +154,11 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
 
               <View style={styles.featuredCardFooter}>
                 <View style={styles.featuredMeta}>
-                  <Ionicons name="time-outline" size={14} color={COLORS.onPrimaryContainer} />
+                  <MaterialIcons name="access-time" size={14} color={COLORS.onPrimaryContainer} />
                   <Text style={styles.featuredTime}>Tomorrow, 08:00 PM</Text>
                 </View>
                 <View style={styles.featuredArrowBtn}>
-                  <Ionicons name="arrow-forward" size={16} color={COLORS.primary} />
+                  <MaterialIcons name="chevron-right" size={16} color={COLORS.primary} />
                 </View>
               </View>
             </BouncyPressable>
@@ -168,7 +168,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
               style={[styles.featuredCard, { backgroundColor: COLORS.secondaryContainer }]}
             >
               <View style={styles.decorIconContainer}>
-                <Ionicons name="calendar-outline" size={100} color={COLORS.secondary + '15'} style={styles.decorIcon} />
+                <MaterialIcons name="calendar-month" size={100} color={COLORS.secondary + '15'} style={styles.decorIcon} />
               </View>
               <View style={styles.tagBadge}>
                 <Text style={[styles.tagBadgeText, { color: COLORS.secondary }]}>Upcoming</Text>
@@ -179,7 +179,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
               </View>
               <View style={styles.featuredCardFooter}>
                 <View style={styles.featuredMeta}>
-                  <Ionicons name="time-outline" size={14} color={COLORS.onSecondaryContainer} />
+                  <MaterialIcons name="access-time" size={14} color={COLORS.onSecondaryContainer} />
                   <Text style={[styles.featuredTime, { color: COLORS.onSecondaryContainer }]}>Saturday, 08:30 AM</Text>
                 </View>
               </View>
@@ -198,7 +198,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
                   style={[styles.gridCard, { backgroundColor: bgColor }]}
                 >
                   <View style={[styles.gridIconCircle, { backgroundColor: '#ffffff70' }]}>
-                    <Ionicons name={getNoteIcon(note) as any} size={18} color={textColor} />
+                    <MaterialIcons name={getNoteIcon(note) as any} size={18} color={textColor} />
                   </View>
                   <View style={styles.gridTextContainer}>
                     <Text numberOfLines={1} style={[styles.gridTitle, { color: textColor }]}>
@@ -238,7 +238,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
                   ]}
                 >
                   <View style={[styles.listItemIconCircle, { backgroundColor: getCategoryBgColor(note.category) }]}>
-                    <Ionicons
+                    <MaterialIcons
                       name={getNoteIcon(note) as any}
                       size={20}
                       color={getCategoryColor(note.category)}
@@ -248,7 +248,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
                     <Text style={styles.listItemTitle}>{note.title}</Text>
                     <Text numberOfLines={1} style={styles.listItemDesc}>{note.content}</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={COLORS.outlineVariant} />
+                  <MaterialIcons name="chevron-right" size={18} color={COLORS.outlineVariant} />
                 </BouncyPressable>
               ))
             )}
@@ -258,7 +258,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({ onSelectNote, onNaviga
 
       {/* FAB to add a new note */}
       <BouncyPressable onPress={() => onSelectNote(null)} style={styles.fab}>
-        <Ionicons name="add" size={32} color="#ffffff" />
+        <MaterialIcons name="add" size={32} color="#ffffff" />
       </BouncyPressable>
     </View>
   );
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.marginMobile,
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 50 : Platform.OS === 'android' ? 40 : 20,
     paddingBottom: SPACING.sm,
     backgroundColor: COLORS.background,
   },

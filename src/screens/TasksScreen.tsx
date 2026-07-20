@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, TextInput, Modal, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, TextInput, Modal, Alert, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAppDb, Task } from '../context/AppDbContext';
 import { ConfettiView, ConfettiRef } from '../components/ConfettiView';
 import { CheerToast } from '../components/CheerToast';
@@ -65,13 +65,13 @@ export const TasksScreen: React.FC = () => {
     switch (cat) {
       case 'Self Care':
         return {
-          icon: 'heart',
+          icon: 'favorite',
           bgColor: COLORS.tertiaryContainer,
           color: COLORS.tertiary,
         };
       case 'Projects':
         return {
-          icon: 'create',
+          icon: 'edit',
           bgColor: COLORS.primaryContainer,
           color: COLORS.primary,
         };
@@ -102,7 +102,7 @@ export const TasksScreen: React.FC = () => {
           <Text style={styles.greetingText}>Hi, {db.settings.currentUser?.name || 'Sunshine'}!</Text>
         </View>
         <BouncyPressable style={styles.notificationButton}>
-          <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
+          <MaterialIcons name="notifications-none" size={24} color={COLORS.primary} />
         </BouncyPressable>
       </View>
 
@@ -136,7 +136,7 @@ export const TasksScreen: React.FC = () => {
                 <View key={task.id} style={styles.taskCard}>
                   <View style={styles.taskInfo}>
                     <View style={[styles.categoryIconCircle, { backgroundColor: theme.bgColor }]}>
-                      <Ionicons name={theme.icon as any} size={18} color={theme.color} />
+                      <MaterialIcons name={theme.icon as any} size={18} color={theme.color} />
                     </View>
                     <View style={styles.textContainer}>
                       <Text style={styles.taskText}>{task.text}</Text>
@@ -165,7 +165,7 @@ export const TasksScreen: React.FC = () => {
                   <View key={task.id} style={[styles.taskCard, styles.completedTaskCard]}>
                     <View style={styles.taskInfo}>
                       <View style={[styles.categoryIconCircle, { backgroundColor: theme.bgColor, opacity: 0.5 }]}>
-                        <Ionicons name={theme.icon as any} size={18} color={theme.color} />
+                        <MaterialIcons name={theme.icon as any} size={18} color={theme.color} />
                       </View>
                       <View style={styles.textContainer}>
                         <Text style={[styles.taskText, styles.checkedText]}>{task.text}</Text>
@@ -176,7 +176,7 @@ export const TasksScreen: React.FC = () => {
                     </View>
                     <BouncyPressable onPress={(e) => handleToggle(task, e)} style={styles.checkboxWrapper}>
                       <View style={[styles.checkbox, styles.checkboxChecked]}>
-                        <Ionicons name="checkmark" size={16} color={COLORS.secondary} />
+                        <MaterialIcons name="check" size={16} color={COLORS.secondary} />
                       </View>
                     </BouncyPressable>
                   </View>
@@ -189,7 +189,7 @@ export const TasksScreen: React.FC = () => {
         {/* Visual Sticker Area */}
         <View style={styles.stickerArea}>
           <View style={styles.trophyCircle}>
-            <Ionicons name="trophy" size={48} color={COLORS.onTertiaryContainer} />
+            <MaterialIcons name="emoji-events" size={48} color={COLORS.onTertiaryContainer} />
           </View>
           <Text style={styles.stickerText}>
             Mỗi dấu tích là một chiến thắng nhỏ. Tiếp tục phát huy nhé!
@@ -199,7 +199,7 @@ export const TasksScreen: React.FC = () => {
 
       {/* Floating Action Button */}
       <BouncyPressable onPress={() => setModalVisible(true)} style={styles.fab}>
-        <Ionicons name="add" size={32} color="#ffffff" />
+        <MaterialIcons name="add" size={32} color="#ffffff" />
       </BouncyPressable>
 
       {/* Add Task Modal */}
@@ -214,7 +214,7 @@ export const TasksScreen: React.FC = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Thêm nhiệm vụ mới</Text>
               <BouncyPressable onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.onSurface} />
+                <MaterialIcons name="close" size={24} color={COLORS.onSurface} />
               </BouncyPressable>
             </View>
 
@@ -242,7 +242,7 @@ export const TasksScreen: React.FC = () => {
                       isSelected && { backgroundColor: theme.bgColor },
                     ]}
                   >
-                    <Ionicons name={theme.icon as any} size={16} color={theme.color} />
+                    <MaterialIcons name={theme.icon as any} size={16} color={theme.color} />
                     <Text style={[styles.categoryOptionText, { color: theme.color }]}>{cat}</Text>
                   </BouncyPressable>
                 );
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.marginMobile,
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 50 : Platform.OS === 'android' ? 40 : 20,
     paddingBottom: SPACING.sm,
     backgroundColor: COLORS.background,
   },

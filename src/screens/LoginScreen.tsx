@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Alert, Dimensions, ScrollView } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import { useAppDb } from '../context/AppDbContext';
 
 interface LoginScreenProps {
@@ -46,13 +46,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
       <View style={styles.loginCard}>
         {/* Back Button */}
         <BouncyPressable onPress={onBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+          <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
         </BouncyPressable>
 
         {/* Brand Header */}
         <View style={styles.brandContainer}>
           <View style={styles.logoCircle}>
-            <Ionicons name="heart" size={32} color={COLORS.primary} />
+            <MaterialIcons name="favorite" size={32} color={COLORS.primary} />
           </View>
           <Text style={styles.title}>Chào quay trở lại!</Text>
           <Text style={styles.subtitle}>Hãy đăng nhập để tiếp tục hành trình cùng Sunnie nhé.</Text>
@@ -69,7 +69,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
                 emailFocused && styles.inputWrapperFocused,
               ]}
             >
-              <Ionicons
+              <MaterialIcons
                 name="mail-outline"
                 size={20}
                 color={emailFocused ? COLORS.primary : COLORS.outline}
@@ -103,8 +103,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
                 passwordFocused && styles.inputWrapperFocused,
               ]}
             >
-              <Ionicons
-                name="lock-closed-outline"
+              <MaterialIcons
+                name="lock-outline"
                 size={20}
                 color={passwordFocused ? COLORS.primary : COLORS.outline}
                 style={styles.inputIcon}
@@ -112,7 +112,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
-                placeholderTextColor={COLORS.outline + '80'}
+                placeholderTextColor={COLORS.outline}
                 secureTextEntry={!isPasswordVisible}
                 value={password}
                 onChangeText={setPassword}
@@ -123,8 +123,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
                 onPress={() => setIsPasswordVisible(!isPasswordVisible)}
                 style={styles.visibilityToggle}
               >
-                <Ionicons
-                  name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
+                <MaterialIcons
+                  name={isPasswordVisible ? 'visibility-off' : 'visibility'}
                   size={20}
                   color={COLORS.outline}
                 />
@@ -136,7 +136,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
           <BouncyPressable onPress={handleLogin} style={styles.loginButton}>
             <View style={styles.loginButtonContent}>
               <Text style={styles.loginButtonText}>Đăng nhập</Text>
-              <Ionicons name="arrow-forward" size={18} color={COLORS.onPrimaryContainer} />
+              <MaterialIcons name="arrow-forward" size={18} color={COLORS.onPrimaryContainer} />
             </View>
           </BouncyPressable>
         </View>

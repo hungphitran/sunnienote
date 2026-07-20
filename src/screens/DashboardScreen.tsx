@@ -1,9 +1,9 @@
 import React, { useRef } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
 import { WaveProgress } from '../components/WaveProgress';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAppDb, Event, getTodayDateString } from '../context/AppDbContext';
 import { ConfettiView, ConfettiRef } from '../components/ConfettiView';
 
@@ -109,7 +109,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
           </Text>
         </View>
         <BouncyPressable style={styles.notificationButton}>
-          <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
+          <MaterialIcons name="notifications-none" size={24} color={COLORS.primary} />
         </BouncyPressable>
       </View>
 
@@ -122,7 +122,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
               <Text style={styles.cardSubtitle}>Hôm nay bạn đã rất cố gắng rồi.</Text>
             </View>
             <View style={styles.waterIconCircle}>
-              <Ionicons name="water" size={22} color={COLORS.onSecondaryContainer} />
+              <MaterialIcons name="opacity" size={22} color={COLORS.onSecondaryContainer} />
             </View>
           </View>
 
@@ -142,7 +142,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
               addWater(250);
               confettiRef.current?.trigger(e.nativeEvent.pageX || 200, e.nativeEvent.pageY || 300, ['💧', '💦', '🥤', '🐳', '✨']);
             }} style={styles.addWaterButton}>
-              <Ionicons name="add" size={16} color={COLORS.onSecondaryContainer} />
+              <MaterialIcons name="add" size={16} color={COLORS.onSecondaryContainer} />
               <Text style={styles.addWaterText}>Thêm 250ml</Text>
             </BouncyPressable>
             
@@ -151,7 +151,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
                 addWater(-250);
                 confettiRef.current?.trigger(e.nativeEvent.pageX || 100, e.nativeEvent.pageY || 300, ['💨', '😅', '💧']);
               }} style={styles.subtractWaterButton}>
-                <Ionicons name="remove" size={16} color={COLORS.outline} />
+                <MaterialIcons name="remove" size={16} color={COLORS.outline} />
               </BouncyPressable>
             )}
           </View>
@@ -195,7 +195,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
                     <View style={styles.meetingInfo}>
                       <Text style={styles.meetingTitle}>{event.title}</Text>
                       <View style={styles.meetingTimeContainer}>
-                        <Ionicons name="time-outline" size={12} color={COLORS.onSurfaceVariant} />
+                        <MaterialIcons name="access-time" size={12} color={COLORS.onSurfaceVariant} />
                         <Text style={styles.meetingTime}>{event.time}</Text>
                       </View>
                     </View>
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.marginMobile,
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 50 : Platform.OS === 'android' ? 40 : 20,
     paddingBottom: SPACING.sm,
     backgroundColor: COLORS.background,
   },

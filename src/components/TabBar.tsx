@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from './BouncyPressable';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 interface TabBarProps {
   activeTab: number;
@@ -11,10 +11,10 @@ interface TabBarProps {
 
 export const TabBar: React.FC<TabBarProps> = ({ activeTab, setActiveTab }) => {
   const tabs = [
-    { label: 'Home', icon: 'home-outline', iconActive: 'home' },
-    { label: 'Calendar', icon: 'calendar-outline', iconActive: 'calendar' },
-    { label: 'Notes', icon: 'document-text-outline', iconActive: 'document-text' },
-    { label: 'Tasks', icon: 'checkmark-circle-outline', iconActive: 'checkmark-circle' },
+    { label: 'Home', icon: 'dashboard', iconActive: 'dashboard' },
+    { label: 'Calendar', icon: 'calendar-month', iconActive: 'calendar-month' },
+    { label: 'Notes', icon: 'sticky-note-2', iconActive: 'sticky-note-2' },
+    { label: 'Tasks', icon: 'check-circle-outline', iconActive: 'check-circle' },
     { label: 'Settings', icon: 'person-outline', iconActive: 'person' },
   ];
 
@@ -40,7 +40,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, setActiveTab }) => {
                 isActive && [styles.tabBtnActive, { backgroundColor: activeBg }],
               ]}
             >
-              <Ionicons
+              <MaterialIcons
                 name={(isActive ? tab.iconActive : tab.icon) as any}
                 size={isActive ? 20 : 22}
                 color={isActive ? activeIconColor : COLORS.onSurfaceVariant}

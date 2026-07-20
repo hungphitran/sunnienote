@@ -3,7 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { StyleSheet, Text, View, Image, ScrollView, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAppDb, Event, getLocalDateString } from '../context/AppDbContext';
 import { ConfettiView, ConfettiRef } from '../components/ConfettiView';
 import { CheerToast } from '../components/CheerToast';
@@ -186,7 +186,7 @@ export const CalendarScreen: React.FC = () => {
           <Text style={styles.greetingText}>Hi, {db.settings.currentUser?.name || 'Sunshine'}!</Text>
         </View>
         <BouncyPressable style={styles.notificationButton}>
-          <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
+          <MaterialIcons name="notifications-none" size={24} color={COLORS.primary} />
         </BouncyPressable>
       </View>
 
@@ -196,7 +196,7 @@ export const CalendarScreen: React.FC = () => {
           <Text style={styles.monthText}>{getMonthYearString()}</Text>
           <BouncyPressable style={styles.monthActionBtn}>
             <Text style={styles.monthActionText}>Full view</Text>
-            <Ionicons name="calendar-outline" size={16} color={COLORS.primary} />
+            <MaterialIcons name="calendar-month" size={16} color={COLORS.primary} />
           </BouncyPressable>
         </View>
 
@@ -252,11 +252,11 @@ export const CalendarScreen: React.FC = () => {
           <View style={styles.timePickerContainer}>
             <View style={styles.timeColumn}>
               <TouchableOpacity onPress={() => setEventHour(h => (h === 12 ? 1 : h + 1))}>
-                <Ionicons name="chevron-up" size={24} color={COLORS.primary} />
+                <MaterialIcons name="keyboard-arrow-up" size={24} color={COLORS.primary} />
               </TouchableOpacity>
               <Text style={styles.timeDigit}>{String(eventHour).padStart(2, '0')}</Text>
               <TouchableOpacity onPress={() => setEventHour(h => (h === 1 ? 12 : h - 1))}>
-                <Ionicons name="chevron-down" size={24} color={COLORS.primary} />
+                <MaterialIcons name="keyboard-arrow-down" size={24} color={COLORS.primary} />
               </TouchableOpacity>
             </View>
 
@@ -264,11 +264,11 @@ export const CalendarScreen: React.FC = () => {
 
             <View style={styles.timeColumn}>
               <TouchableOpacity onPress={() => setEventMinute(m => (m >= 55 ? 0 : m + 5))}>
-                <Ionicons name="chevron-up" size={24} color={COLORS.primary} />
+                <MaterialIcons name="keyboard-arrow-up" size={24} color={COLORS.primary} />
               </TouchableOpacity>
               <Text style={styles.timeDigit}>{String(eventMinute).padStart(2, '0')}</Text>
               <TouchableOpacity onPress={() => setEventMinute(m => (m <= 0 ? 55 : m - 5))}>
-                <Ionicons name="chevron-down" size={24} color={COLORS.primary} />
+                <MaterialIcons name="keyboard-arrow-down" size={24} color={COLORS.primary} />
               </TouchableOpacity>
             </View>
 
@@ -329,12 +329,12 @@ export const CalendarScreen: React.FC = () => {
                       
                       <View style={styles.meetingMeta}>
                         <View style={styles.metaRow}>
-                          <Ionicons name="time-outline" size={14} color={COLORS.outline} />
+                          <MaterialIcons name="access-time" size={14} color={COLORS.outline} />
                           <Text style={styles.metaText}>{event.time}</Text>
                         </View>
                         {event.location && (
                           <View style={styles.metaRow}>
-                            <Ionicons name="location-outline" size={14} color={COLORS.outline} />
+                            <MaterialIcons name="place" size={14} color={COLORS.outline} />
                             <Text style={styles.metaText} numberOfLines={1}>{event.location}</Text>
                           </View>
                         )}
@@ -349,8 +349,8 @@ export const CalendarScreen: React.FC = () => {
                         event.alarmActive && styles.alarmButtonActive
                       ]}
                     >
-                      <Ionicons
-                        name={event.alarmActive ? 'notifications' : 'notifications-off-outline'}
+                      <MaterialIcons
+                        name={event.alarmActive ? 'notifications' : 'notifications-off'}
                         size={18}
                         color={event.alarmActive ? COLORS.onSecondary : COLORS.outline}
                       />
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.marginMobile,
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 50 : Platform.OS === 'android' ? 40 : 20,
     paddingBottom: SPACING.sm,
     backgroundColor: COLORS.background,
   },

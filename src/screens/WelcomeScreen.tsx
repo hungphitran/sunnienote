@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Image, Animated, Dimensions } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -84,12 +84,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart, onLogin }
 
         {/* Floating Check Badge */}
         <View style={[styles.floatingBadge, styles.badgeCheck, { top: 10, right: 10 }]}>
-          <Ionicons name="checkmark-circle" size={24} color={COLORS.secondary} />
+          <MaterialIcons name="check-circle" size={24} color={COLORS.secondary} />
         </View>
 
         {/* Floating Heart Badge */}
         <View style={[styles.floatingBadge, styles.badgeHeart, { bottom: 20, left: 10 }]}>
-          <Ionicons name="heart" size={20} color={COLORS.primary} />
+          <MaterialIcons name="favorite" size={20} color={COLORS.primary} />
         </View>
       </Animated.View>
 
@@ -108,7 +108,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart, onLogin }
         <BouncyPressable onPress={onStart} style={styles.startButton}>
           <View style={styles.startButtonContent}>
             <Text style={styles.startButtonText}>Bắt đầu ngay</Text>
-            <Ionicons name="arrow-forward" size={18} color={COLORS.onPrimaryContainer} />
+            <MaterialIcons name="arrow-forward" size={18} color={COLORS.onPrimaryContainer} />
           </View>
         </BouncyPressable>
 

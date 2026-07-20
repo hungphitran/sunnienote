@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Image, ScrollView, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAppDb, Note, ChecklistItem } from '../context/AppDbContext';
 
 interface NoteDetailScreenProps {
@@ -119,7 +119,7 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
         {/* Top App Bar */}
         <View style={styles.appBar}>
           <BouncyPressable onPress={onBack} style={styles.appBarBtn}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+            <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
           </BouncyPressable>
           
           <Text style={styles.appBarTitle}>Chi tiết Ghi chú</Text>
@@ -127,7 +127,7 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
           <View style={styles.appBarActions}>
             {noteId && (
               <BouncyPressable onPress={handleDelete} style={[styles.appBarBtn, { marginRight: 8 }]}>
-                <Ionicons name="trash-outline" size={22} color={COLORS.error} />
+                <MaterialIcons name="delete" size={22} color={COLORS.error} />
               </BouncyPressable>
             )}
           </View>
@@ -165,7 +165,7 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
               onChangeText={setTitle}
             />
             <View style={styles.metaRow}>
-              <Ionicons name="calendar-outline" size={14} color={COLORS.outline} />
+              <MaterialIcons name="calendar-month" size={14} color={COLORS.outline} />
               <Text style={styles.metaText}>
                 {noteId ? `Ngày tạo: ${noteDate}` : 'Ngày tạo: Hôm nay'}
               </Text>
@@ -191,7 +191,7 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
           {/* Checklist Area */}
           <View style={styles.checklistSection}>
             <Text style={styles.checklistTitle}>
-              <Ionicons name="list-sharp" size={18} color={COLORS.primary} style={{ marginRight: 6 }} />
+              <MaterialIcons name="format-list-bulleted" size={18} color={COLORS.primary} style={{ marginRight: 6 }} />
               Đồ cần chuẩn bị
             </Text>
 
@@ -200,7 +200,7 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
                 <View key={item.id} style={styles.checkItemRow}>
                   <BouncyPressable onPress={() => toggleChecklistItem(item.id)} style={styles.checkBtn}>
                     <View style={[styles.checkboxCircle, item.completed && styles.checkboxCircleChecked]}>
-                      {item.completed && <Ionicons name="checkmark" size={14} color={COLORS.secondary} />}
+                      {item.completed && <MaterialIcons name="check" size={14} color={COLORS.secondary} />}
                     </View>
                   </BouncyPressable>
                   
@@ -209,7 +209,7 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
                   </Text>
 
                   <BouncyPressable onPress={() => removeChecklistItem(item.id)} style={styles.checkRemoveBtn}>
-                    <Ionicons name="close-circle-outline" size={18} color={COLORS.outline} />
+                    <MaterialIcons name="cancel" size={18} color={COLORS.outline} />
                   </BouncyPressable>
                 </View>
               ))}
@@ -225,7 +225,7 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
                   onSubmitEditing={addChecklistItem}
                 />
                 <BouncyPressable onPress={addChecklistItem} style={styles.addCheckBtn}>
-                  <Ionicons name="add" size={20} color={COLORS.primary} />
+                  <MaterialIcons name="add" size={20} color={COLORS.primary} />
                 </BouncyPressable>
               </View>
             </View>
@@ -236,11 +236,11 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
             <Text style={styles.scheduleHeader}>Thời gian dự kiến</Text>
             <View style={styles.pickerRow}>
               <View style={styles.pickerField}>
-                <Ionicons name="calendar-outline" size={16} color={COLORS.secondary} />
+                <MaterialIcons name="calendar-month" size={16} color={COLORS.secondary} />
                 <Text style={styles.pickerText}>2023-10-21</Text>
               </View>
               <View style={styles.pickerField}>
-                <Ionicons name="time-outline" size={16} color={COLORS.secondary} />
+                <MaterialIcons name="access-time" size={16} color={COLORS.secondary} />
                 <Text style={styles.pickerText}>08:30 AM</Text>
               </View>
             </View>
@@ -248,7 +248,7 @@ export const NoteDetailScreen: React.FC<NoteDetailScreenProps> = ({ noteId, onBa
 
           {/* Action Buttons */}
           <BouncyPressable onPress={handleSave} style={styles.saveBtn}>
-            <Ionicons name="save-outline" size={20} color={COLORS.onPrimaryContainer} />
+            <MaterialIcons name="save" size={20} color={COLORS.onPrimaryContainer} />
             <Text style={styles.saveBtnText}>Lưu Ghi Chú</Text>
           </BouncyPressable>
         </ScrollView>
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.marginMobile,
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 50 : Platform.OS === 'android' ? 40 : 20,
     paddingBottom: SPACING.sm,
     backgroundColor: COLORS.background,
     borderBottomWidth: 1,
