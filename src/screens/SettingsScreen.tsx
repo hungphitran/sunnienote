@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Image, ScrollView, Switch, Alert, TextInput, Platform } from 'react-native';
 import { COLORS, FONTS, SHADOWS, SPACING } from '../config/theme';
 import { BouncyPressable } from '../components/BouncyPressable';
@@ -6,6 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useAppDb } from '../context/AppDbContext';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Notifications from 'expo-notifications';
 
 interface SettingsScreenProps {
   onLogout?: () => void;
@@ -23,6 +24,47 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   } = useAppDb();
 
   const [themeMode, setThemeMode] = useState<boolean>(db.settings.theme === 'dark');
+  const [notificationStatus, setNotificationStatus] = useState<string>('undetermined');
+
+  useEffect(() => {
+    async function checkPermission() {
+      const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
+      if (!isNotificationSupported) {
+        setNotificationStatus('unsupported');
+        return;
+      }
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        setNotificationStatus(status);
+      } catch (err) {
+        console.log('Error checking notification permission', err);
+      }
+    }
+    checkPermission();
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
+    if (!isNotificationSupported) {
+      Alert.alert('Không hỗ trợ', 'Thiết bị hoặc trình duyệt của bạn không hỗ trợ thông báo.');
+      return;
+    }
+    try {
+      const { status } = await Notifications.requestPermissionsAsync();
+      setNotificationStatus(status);
+      if (status === 'granted') {
+        Alert.alert('Thành công', 'Đã bật quyền nhận thông báo từ Sunnie! 🔔');
+      } else {
+        Alert.alert(
+          'Quyền bị từ chối',
+          'Bạn cần cấp quyền thông báo trong cài đặt thiết bị để nhận các nhắc nhở từ ứng dụng.'
+        );
+      }
+    } catch (err) {
+      console.log('Error requesting notification permission', err);
+      Alert.alert('Lỗi', 'Không thể yêu cầu quyền thông báo.');
+    }
+  };
 
   const handleThemeChange = (value: boolean) => {
     setThemeMode(value);
@@ -116,14 +158,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
               updateUserSettings({
                 currentUser: {
                   name: newName,
-                  email: db.settings.currentUser?.email || 'sunshine.hello@example.com',
+                  email: db.settings.currentUser?.email || 'sunshine.hello',
                 }
               });
             }}
             placeholder="Nhập tên của bạn..."
             placeholderTextColor={COLORS.outline}
           />
-          <Text style={styles.userEmail}>{db.settings.currentUser?.email || 'sunshine.hello@example.com'}</Text>
+          <Text style={styles.userEmail}>{(db.settings.currentUser?.email || 'sunshine.hello').replace('@example.com', '')}</Text>
         </View>
 
         {/* Settings Groups */}
@@ -140,7 +182,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
               </View>
               <Switch
                 value={db.settings.waterReminder}
-                onValueChange={(val) => updateUserSettings({ waterReminder: val })}
+                onValueChange={async (val) => {
+                  updateUserSettings({ waterReminder: val });
+                  if (val && notificationStatus !== 'granted') {
+                    await requestNotificationPermission();
+                  }
+                }}
                 trackColor={{ false: COLORS.outlineVariant, true: COLORS.secondaryContainer }}
                 thumbColor={db.settings.waterReminder ? COLORS.secondary : COLORS.surfaceDim}
               />
@@ -154,11 +201,33 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
               </View>
               <Switch
                 value={db.settings.meetingsReminder}
-                onValueChange={(val) => updateUserSettings({ meetingsReminder: val })}
+                onValueChange={async (val) => {
+                  updateUserSettings({ meetingsReminder: val });
+                  if (val && notificationStatus !== 'granted') {
+                    await requestNotificationPermission();
+                  }
+                }}
                 trackColor={{ false: COLORS.outlineVariant, true: COLORS.secondaryContainer }}
                 thumbColor={db.settings.meetingsReminder ? COLORS.secondary : COLORS.surfaceDim}
               />
             </View>
+
+            {/* Request System Notification Permission */}
+            <BouncyPressable onPress={requestNotificationPermission} style={styles.rowItemBtn}>
+              <View style={styles.rowLabelGroup}>
+                <MaterialIcons name="notifications-active" size={20} color={COLORS.tertiary} style={styles.rowIcon} />
+                <Text style={styles.rowText}>Bật thông báo hệ thống</Text>
+              </View>
+              <View style={styles.rowRightSide}>
+                <Text style={[
+                  styles.rowDetailText,
+                  notificationStatus === 'granted' && { color: COLORS.secondary, fontWeight: 'bold' }
+                ]}>
+                  {notificationStatus === 'granted' ? 'Đã bật' : notificationStatus === 'denied' ? 'Bị từ chối' : 'Chưa bật'}
+                </Text>
+                <MaterialIcons name="chevron-right" size={18} color={COLORS.outline} />
+              </View>
+            </BouncyPressable>
           </View>
 
           {/* Account Settings */}

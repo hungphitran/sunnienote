@@ -124,7 +124,7 @@ const initialMockDb: AppDatabase = {
     meetingsReminder: false,
     currentUser: {
       name: 'Sunshine',
-      email: 'sunshine.hello@example.com'
+      email: 'sunshine.hello'
     }
   }
 };
