@@ -1,0 +1,25 @@
+{
+  "short_name": "Sunnie Note",
+  "name": "Sunnie Note",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    },
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#E6F4FE",
+  "theme_color": "#E6F4FE",
+  "display": "standalone"
+}
