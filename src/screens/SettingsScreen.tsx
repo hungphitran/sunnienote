@@ -8,6 +8,23 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Notifications from 'expo-notifications';
 
+const VAPID_PUBLIC_KEY = 'BIrUiRolvPe5JpsBnlLnhz_tR7wk95zw_axWnsAm7ddVPJD9njR9Uj0sjVdXzKOlwWXN1ge2aj3rliYz6Z44-MQ';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 interface SettingsScreenProps {
   onLogout?: () => void;
 }
@@ -26,20 +43,43 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   const [themeMode, setThemeMode] = useState<boolean>(db.settings.theme === 'dark');
   const [notificationStatus, setNotificationStatus] = useState<string>('undetermined');
 
-  useEffect(() => {
-    async function checkPermission() {
-      const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
-      if (!isNotificationSupported) {
-        setNotificationStatus('unsupported');
+  const checkPermission = async () => {
+    const isNotificationSupported = Platform.OS !== 'web' || (typeof window !== 'undefined' && 'Notification' in window);
+    if (!isNotificationSupported) {
+      setNotificationStatus('unsupported');
+      return;
+    }
+    
+    if (Platform.OS === 'web') {
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        try {
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration) {
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+              setNotificationStatus('granted');
+              return;
+            }
+          }
+        } catch (err) {
+          console.log('Error checking PWA notification subscription', err);
+        }
+      }
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        setNotificationStatus(Notification.permission);
         return;
       }
-      try {
-        const { status } = await Notifications.getPermissionsAsync();
-        setNotificationStatus(status);
-      } catch (err) {
-        console.log('Error checking notification permission', err);
-      }
     }
+    
+    try {
+      const { status } = await Notifications.getPermissionsAsync();
+      setNotificationStatus(status);
+    } catch (err) {
+      console.log('Error checking notification permission', err);
+    }
+  };
+
+  useEffect(() => {
     checkPermission();
   }, []);
 
@@ -49,6 +89,62 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
       Alert.alert('Không hỗ trợ', 'Thiết bị hoặc trình duyệt của bạn không hỗ trợ thông báo.');
       return;
     }
+
+    if (Platform.OS === 'web') {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        Alert.alert('Không hỗ trợ', 'Trình duyệt của bạn không hỗ trợ Service Worker hoặc Push Notification.');
+        return;
+      }
+
+      try {
+        const permission = await Notification.requestPermission();
+        setNotificationStatus(permission);
+
+        if (permission !== 'granted') {
+          Alert.alert(
+            'Quyền bị từ chối',
+            'Bạn cần cho phép hiển thị thông báo của trình duyệt để nhận nhắc nhở.'
+          );
+          return;
+        }
+
+        let registration = await navigator.serviceWorker.getRegistration();
+        if (!registration) {
+          registration = await navigator.serviceWorker.register('/sw.js');
+        }
+
+        await navigator.serviceWorker.ready;
+
+        const subscribeOptions = {
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        };
+
+        const subscription = await registration.pushManager.subscribe(subscribeOptions);
+        console.log('PWA Subscribed:', subscription);
+
+        const response = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(subscription),
+        });
+
+        if (response.ok) {
+          Alert.alert('Thành công', 'Đã đăng ký nhận thông báo hệ thống thành công! 🔔');
+          setNotificationStatus('granted');
+        } else {
+          Alert.alert('Lưu ý', 'Đăng ký thành công trên trình duyệt nhưng không lưu được trên backend server.');
+        }
+
+      } catch (err) {
+        console.error('PWA Notification registration failed:', err);
+        Alert.alert('Lỗi', 'Không thể cấu hình Web Push Notification. Hãy thử tải lại trang hoặc chạy qua HTTPS.');
+      }
+      return;
+    }
+
     try {
       const { status } = await Notifications.requestPermissionsAsync();
       setNotificationStatus(status);
@@ -63,6 +159,31 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
     } catch (err) {
       console.log('Error requesting notification permission', err);
       Alert.alert('Lỗi', 'Không thể yêu cầu quyền thông báo.');
+    }
+  };
+
+  const sendTestNotification = async () => {
+    try {
+      const response = await fetch('/api/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: 'Chào bạn! 🌸',
+          body: 'Đây là thông báo thử nghiệm hoạt động tốt từ Sunnie Note.',
+          url: '/'
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        Alert.alert('Thành công', `Đã kích hoạt thông báo thử nghiệm! Đã gửi đến ${data.sentCount} thiết bị đăng ký.`);
+      } else {
+        Alert.alert('Không hoạt động', 'Không tìm thấy thiết bị đăng ký hoặc lỗi từ server. Vui lòng bật thông báo trước.');
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Lỗi kết nối', 'Không thể kết nối đến API backend. Vui lòng kiểm tra server đang chạy.');
     }
   };
 
@@ -228,6 +349,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
                 <MaterialIcons name="chevron-right" size={18} color={COLORS.outline} />
               </View>
             </BouncyPressable>
+
+            {/* Send Test Notification (Web only) */}
+            {Platform.OS === 'web' && (
+              <BouncyPressable onPress={sendTestNotification} style={styles.rowItemBtn}>
+                <View style={styles.rowLabelGroup}>
+                  <MaterialIcons name="send" size={20} color={COLORS.tertiary} style={styles.rowIcon} />
+                  <Text style={styles.rowText}>Gửi thông báo thử nghiệm (Test PWA)</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={18} color={COLORS.outline} />
+              </BouncyPressable>
+            )}
           </View>
 
           {/* Account Settings */}
